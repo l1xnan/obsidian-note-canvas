@@ -1,4 +1,4 @@
-# Obsidian Sample Plugin
+# Obsidian Convert Note to Canvas Plugin
 
 This is a sample plugin for Obsidian (https://obsidian.md).
 
