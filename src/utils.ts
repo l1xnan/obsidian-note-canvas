@@ -1,5 +1,5 @@
 import { CachedMetadata, HeadingCache } from "obsidian";
-import { CanvasPluginSettings } from "./main";
+import { CanvasPluginSettings, DEFAULT_SETTINGS } from "./main";
 
 export interface TextNode {
   id: string;
@@ -43,6 +43,7 @@ export type ItemType = {
   pid: string;
   text: string;
   level: number;
+  layer: number;
   x: number;
   y: number;
 };
@@ -55,40 +56,35 @@ const Y_GAP = 30;
 export function convertToCache(
   cache: CachedMetadata,
   data: string,
-  config: CanvasPluginSettings = {
-    width: WIDTH,
-    height: HEIGHT,
-  },
+  setting: CanvasPluginSettings = DEFAULT_SETTINGS,
   title: string
 ) {
   const { headings = [], sections = [] } = cache;
 
-  const { width: WIDTH } = config;
-  const levels: number[] = new Array(6).fill(0);
-  levels[0] = 1;
-
   let yAxis = 0;
-  const edges: Edge[] = [];
 
   let head = 0;
 
-  const items: ItemType[] = [
-    {
-      id: "1",
-      pid: "",
-      text: title,
-      level: 1,
-      x: 1,
-      y: 0,
-    },
-  ];
+  const first = {
+    id: "1",
+    pid: "",
+    text: title,
+    level: 1,
+    layer: 1,
+    x: 1,
+    y: 0,
+  };
+
+  const levels: number[] = [1, ...new Array(10).fill(0)];
+  const layers: number[] = [1, ...new Array(10).fill(0)];
   let last_level = 0;
   let last_s = 0;
-  sections.forEach(({ type, position }) => {
+  const items = sections.map(({ type, position }) => {
     if (type === "heading") {
       const { level, heading } = headings[head];
 
       levels[level - 1] += 1;
+      layers[level - 1] += 1;
       if (levels[level - 1] > 1 || last_s > 0) {
         yAxis += 1;
       }
@@ -97,17 +93,18 @@ export function convertToCache(
       const id = levels.slice(0, level).join("-");
       const pid = levels.slice(0, level - 1).join("-");
 
-      items.push({
+      head += 1;
+      last_level = level;
+      last_s = 0;
+      return {
         id,
         pid,
         text: heading,
         level,
+        layer: layers[level - 1],
         x: level,
         y: yAxis,
-      });
-      head += 1;
-      last_level = level;
-      last_s = 0;
+      };
     } else {
       const { start, end } = position;
       if (last_s > 0) {
@@ -117,35 +114,43 @@ export function convertToCache(
       const pid = levels.slice(0, last_level).join("-");
       const id = `${pid}-s${last_s}`;
       const text = data.slice(start.offset, end.offset);
-      items.push({
+      layers[last_level] += 1;
+      return {
         id,
         pid,
         text,
         x: last_level + 1,
         y: yAxis,
+        layer: layers[last_level],
         level: last_level + 1,
-      });
+      };
     }
-    const { pid, id } = items.at(-1)!;
-    edges.push({
-      id: `${pid}/${id}`,
-      fromNode: pid,
-      fromSide: "right",
-      toNode: id,
-      toSide: "left",
-    });
   });
 
-  const nodes = items.map(
-    ({ x, y, id, text }) =>
+  console.table(items);
+
+  const edges = items.map(({ pid, id }) => ({
+    id: `${pid}/${id}`,
+    fromNode: pid,
+    fromSide: "right",
+    toNode: id,
+    toSide: "left",
+  }));
+
+  const { width, height, layout, colGap, rowGap } = setting;
+  const nodes = [first, ...items].map(
+    ({ x, y, id, text, layer }) =>
       ({
         id,
         text,
         type: "text",
-        x: x * (WIDTH + X_GAP),
-        y: y * (HEIGHT + Y_GAP),
-        height: HEIGHT,
-        width: WIDTH,
+        x: x * (width + colGap),
+        y:
+          layout == "compact"
+            ? layer * (height + rowGap)
+            : y * (HEIGHT + rowGap),
+        height: height,
+        width: width,
       } as TextNode)
   );
 
@@ -154,10 +159,7 @@ export function convertToCache(
 
 export function convertToTree(
   headings: HeadingCache[],
-  config: CanvasPluginSettings = {
-    width: WIDTH,
-    height: HEIGHT,
-  }
+  config: CanvasPluginSettings = DEFAULT_SETTINGS
 ) {
   const { width: WIDTH } = config;
   const levels: number[] = new Array(6).fill(0);

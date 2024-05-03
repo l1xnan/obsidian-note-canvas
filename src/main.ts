@@ -4,11 +4,17 @@ import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 export interface CanvasPluginSettings {
   width: number;
   height: number;
+  colGap: number;
+  rowGap: number;
+  layout: string;
 }
 
-const DEFAULT_SETTINGS: CanvasPluginSettings = {
+export const DEFAULT_SETTINGS: CanvasPluginSettings = {
   width: 200,
   height: 60,
+  colGap: 100,
+  rowGap: 30,
+  layout: "compact",
 };
 
 export default class CanvasPlugin extends Plugin {
@@ -76,6 +82,37 @@ class CanvasSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.height = parseFloat(value);
             await this.plugin.saveSettings();
+          })
+      );
+    new Setting(containerEl).setName("Column gap").addText((text) =>
+      text
+        .setValue(this.plugin.settings.colGap.toString())
+        .onChange(async (value) => {
+          this.plugin.settings.colGap = parseFloat(value);
+          await this.plugin.saveSettings();
+        })
+    );
+    new Setting(containerEl).setName("Row gap").addText((text) =>
+      text
+        .setValue(this.plugin.settings.rowGap.toString())
+        .onChange(async (value) => {
+          this.plugin.settings.rowGap = parseFloat(value);
+          await this.plugin.saveSettings();
+        })
+    );
+
+    new Setting(containerEl)
+      .setName("Layout ")
+      .setDesc("Layout style")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOptions(
+            Object.fromEntries(["compact", "loose"].map((type) => [type, type]))
+          )
+          .setValue(this.plugin.settings.layout)
+          .onChange(async (value: string) => {
+            this.plugin.settings.layout = value;
+            this.plugin.saveSettings();
           })
       );
   }
