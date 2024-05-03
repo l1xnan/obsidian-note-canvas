@@ -19,18 +19,15 @@ export default class CanvasPlugin extends Plugin {
 
     this.addCommand({
       id: "note-to-canvas",
-      name: "Export note to canvas",
-      callback: new Convertor(this.app, this).nodeToCanvas,
+      name: "Convert note to canvas",
+      callback: async () => {
+        const convertor = new Convertor(this.app, this);
+        await convertor.nodeToCanvas();
+      },
     });
 
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new CanvasSettingTab(this.app, this));
-
-    // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-    // Using this function will automatically remove the event listener when this plugin is disabled.
-    this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-      console.log("click", evt);
-    });
   }
 
   onunload() {}

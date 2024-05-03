@@ -1,7 +1,7 @@
 {
   "name": "obsidian-note-canvas",
-  "version": "1.0.0",
-  "description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+  "version": "0.1.0",
+  "description": "Obsidian convert note to canvas plugin",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
