@@ -4,11 +4,9 @@ This is an Obsidian plugin that converts your note files to a canvas according t
 
 ## Installation
 
-In Obsidian go to `Settings > Third-party plugins > Community Plugins > Browse` and search for [`Better Export PDF`](obsidian://show-plugin?id=better-export-pdf).
-
 ### Manual installation
 
-1. Download the .zip file from [the latest Release](https://github.com/l1xnan/obsidian-better-export-pdf/releases), or from any other release version.
+1. Download the .zip file from [the latest Release](https://github.com/l1xnan/obsidian-note-canvas/releases), or from any other release version.
 2. Unzip into: `{VaultFolder}/.obsidian/plugins/`
 3. Reload Obsidian and enable the plug-in.
 
